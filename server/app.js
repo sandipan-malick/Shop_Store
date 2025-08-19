@@ -23,7 +23,8 @@ connectDB();
 
 // Middleware setup
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://shop-store-1-z2v0.onrender.com',
+
   credentials: true
 }));
 app.use(express.json());
