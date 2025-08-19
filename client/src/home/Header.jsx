@@ -24,7 +24,7 @@ function Header() {
     }
     try {
       const res = await axios.get(
-        `http://localhost:5080/api/item/search?q=${encodeURIComponent(searchTerm.trim())}`,
+        `https://shop-store-1-z2v0.onrender.com/api/item/search?q=${encodeURIComponent(searchTerm.trim())}`,
         { withCredentials: true }
       );
       const data = res.data ? [res.data] : [];
@@ -41,7 +41,7 @@ function Header() {
   };
 
   function logout() {
-    axios.post("http://localhost:5080/api/item/logout", {}, { withCredentials: true })
+    axios.post("https://shop-store-1-z2v0.onrender.com/api/item/logout", {}, { withCredentials: true })
       .then(() => {
         window.location.reload();
       })
@@ -53,7 +53,7 @@ function Header() {
 
   const checkAuth = async () => {
     try {
-      await axios.get("http://localhost:5080/dashboard", { withCredentials: true });
+      await axios.get("https://shop-store-1-z2v0.onrender.com/dashboard", { withCredentials: true });
       navigate("/");
     } catch (err) {
       if (err.response && err.response.status === 401) {

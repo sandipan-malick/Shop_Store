@@ -45,7 +45,7 @@ function Header() {
   const handleSaveProduct = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5080/api/item/add-item", form, {
+      await axios.post("https://shop-store-1-z2v0.onrender.com/api/item/add-item", form, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
@@ -72,7 +72,7 @@ function Header() {
     }
     try {
       const res = await axios.get(
-        `http://localhost:5080/api/item/search?q=${encodeURIComponent(searchTerm.trim())}`,
+        `https://shop-store-1-z2v0.onrender.com/api/item/search?q=${encodeURIComponent(searchTerm.trim())}`,
         { withCredentials: true }
       );
       const data = res.data ? [res.data] : [];
@@ -91,7 +91,7 @@ function Header() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
-      await axios.delete(`http://localhost:5080/api/item/${id}/delete`, {
+      await axios.delete(`https://shop-store-1-z2v0.onrender.com/api/item/${id}/delete`, {
         withCredentials: true,
       });
       setSearchResults((prev) => prev.filter((p) => p._id !== id));
@@ -122,7 +122,7 @@ function Header() {
     }
     try {
       const res = await axios.put(
-        `http://localhost:5080/api/item/${id}/decrease`,
+        `https://shop-store-1-z2v0.onrender.com/api/item/${id}/decrease`,
         { decreaseAmount: amt },
         { withCredentials: true, headers: { "Content-Type": "application/json" } }
       );
@@ -138,7 +138,7 @@ function Header() {
 
   function logout() {
     axios
-      .post("http://localhost:5080/api/item/logout", {}, { withCredentials: true })
+      .post("https://shop-store-1-z2v0.onrender.com/api/item/logout", {}, { withCredentials: true })
       .then(() => {
         window.location.reload();
       })
@@ -172,7 +172,7 @@ function Header() {
     try {
       const payload = { quantity: addQty, productPrice: newPrice };
       const res = await axios.put(
-        `http://localhost:5080/api/item/${id}`,
+        `https://shop-store-1-z2v0.onrender.com/api/item/${id}`,
         payload,
         { withCredentials: true, headers: { "Content-Type": "application/json" } }
       );
@@ -205,7 +205,7 @@ function Header() {
     try {
       const payload = { productSellPrice: newSell };
       const res = await axios.put(
-        `http://localhost:5080/api/item/${id}`,
+        `https://shop-store-1-z2v0.onrender.com/api/item/${id}`,
         payload,
         { withCredentials: true, headers: { "Content-Type": "application/json" } }
       );
@@ -223,7 +223,7 @@ function Header() {
   // Auth check on mount
   const checkAuth = async () => {
     try {
-      await axios.get("http://localhost:5080/item", { withCredentials: true });
+      await axios.get("https://shop-store-1-z2v0.onrender.com/item", { withCredentials: true });
     } catch (err) {
       if (err.response?.status === 401) navigate("/login");
     }

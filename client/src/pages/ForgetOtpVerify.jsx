@@ -16,7 +16,7 @@ const ForgetOtpVerify = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5080/api/user/verify-forget-otp", {
+      const response = await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/verify-forget-otp", {
         otp,
         email: userData.email,
       });

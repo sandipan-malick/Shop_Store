@@ -16,7 +16,7 @@ function Header() {
   const checkAuth = async () => {
     try {
       // Replace with your real auth check endpoint
-      await axios.get("http://localhost:5080/history", { withCredentials: true });
+      await axios.get("https://shop-store-1-z2v0.onrender.com/history", { withCredentials: true });
     } catch (err) {
       if (err.response?.status === 401) {
         navigate("/login");

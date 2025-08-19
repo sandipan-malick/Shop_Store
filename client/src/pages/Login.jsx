@@ -14,7 +14,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/api/user/login", form); // proxy works here
+      await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/login", form); // proxy works here
      // alert("Login successful");
       navigate("/");
     } catch (err) {

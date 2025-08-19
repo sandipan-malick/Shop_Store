@@ -25,7 +25,7 @@ function ResetPassword() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5080/api/user/reset-password", {
+      const res = await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/reset-password", {
         email,
         newPassword,
       });

@@ -15,7 +15,7 @@ function ForgetPassword() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5080/api/user/forgot-password", { email });
+      const res = await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/forgot-password", { email });
       setMessage(res.data.message);
       setError("");
       navigate("/forget/otp/verify", {

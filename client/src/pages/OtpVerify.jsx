@@ -36,7 +36,7 @@ function OtpVerify() {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/user/verify-otp', {
+      const response = await axios.post('https://shop-store-1-z2v0.onrender.com/api/user/verify-otp', {
         otp,
         username: userData.username,
         email: userData.email,
