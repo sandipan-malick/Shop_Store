@@ -111,11 +111,11 @@ exports.login = async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: "Email and password are required" });
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) return res.status(402).json({ error: "Invalid credentials" });
 
     // Assumes User schema defines user.comparePassword = (plain) => bcrypt.compare(plain, this.password)
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+    if (!isMatch) return res.status(403).json({ error: "Invalid credentials" });
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 

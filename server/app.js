@@ -22,7 +22,7 @@ const app = express();
 connectDB();
 
 const allowedOrigins = [
-  "https://shop-store-data.netlify.app", // production frontend                // local frontend dev
+  "https://shop-store-data.netlify.app",      // production frontend                // local frontend dev
 ];
 
 app.use(cors({
