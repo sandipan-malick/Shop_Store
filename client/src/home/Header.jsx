@@ -53,7 +53,7 @@ function Header() {
 
   const checkAuth = async () => {
     try {
-      await axios.get("https://shop-store-1-z2v0.onrender.com/dashboard", { withCredentials: true });
+      await axios.get("https://shop-store-1-z2v0.onrender.com/", { withCredentials: true });
       navigate("/");
     } catch (err) {
       if (err.response && err.response.status === 401) {

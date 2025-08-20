@@ -22,7 +22,7 @@ const app = express();
 connectDB();
 
 const allowedOrigins = [
-  "https://shop-store-data.netlify.app",      // production frontend                // local frontend dev
+  "https://shop-store-data.netlify.app",      // production frontend
 ];
 
 app.use(cors({
@@ -55,7 +55,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/item', itemRoutes);
 
 // Protected Dashboard Route
-app.get('/dashboard', authMiddleware, (req, res) => {
+app.get('/', authMiddleware, (req, res) => {
   res.send(`Welcome to the Dashboard, ${req.user.username}!`);
 });
 app.get('/item', authMiddleware, (req, res) => {

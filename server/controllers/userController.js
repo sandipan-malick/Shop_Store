@@ -127,24 +127,45 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    if (!email || !password) return res.status(400).json({ error: "Email and password are required" });
-
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(403).json({ error: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(403).json({ error: "Invalid credentials" });
+    }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000,
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
     });
 
-    res.json({ message: "Login successful", token });
+    // Optional: send login success email
+    sendEmail(
+      email,
+      "🎉 Login Successful",
+      `Hi ${user.username},\n\nYour login was successful!\n\nThanks for joining us.\n\n- Team ABC App`
+    ).catch((err) => console.error("Email error:", err));
+
+    // Send response with cookie + JSON
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      })
+      .status(200)
+      .json({
+        message: "Login successful",
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+        },
+      });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });
