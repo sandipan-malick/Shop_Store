@@ -53,6 +53,17 @@ app.use(session({
 // ✅ Routes
 app.use('/api/user', userRoutes);
 app.use('/api/item', itemRoutes);
+// ✅ Auth check route (for frontend Header.jsx)
+app.get('/api/auth/check', authMiddleware, (req, res) => {
+  res.json({
+    loggedIn: true,
+    user: {
+      id: req.user._id,
+      username: req.user.username,
+      email: req.user.email,
+    },
+  });
+});
 
 // Protected Dashboard Route
 app.get('/', authMiddleware, (req, res) => {

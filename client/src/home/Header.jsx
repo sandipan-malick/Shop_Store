@@ -1,72 +1,30 @@
-import React, { useState, useEffect } from "react";
+// Header.jsx
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchPopup, setSearchPopup] = useState(false);
-  const [decreaseForItem, setDecreaseForItem] = useState(null);
-  const [updateForItem, setUpdateForItem] = useState(null);
-
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Check if current path matches for active styling
   const isActive = (path) => location.pathname === path;
 
-  const handleSearchSubmit = async (e) => {
+  // Handle search form submission
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!searchTerm.trim()) {
-      alert("Please enter a product name");
-      return;
-    }
-    try {
-      const res = await axios.get(
-        `https://shop-store-1-z2v0.onrender.com/api/item/search?q=${encodeURIComponent(searchTerm.trim())}`,
-        { withCredentials: true }
-      );
-      const data = res.data ? [res.data] : [];
-      setSearchResults(data);
-      setSearchPopup(true);
-      setDecreaseForItem(null);
-      setUpdateForItem(null);
-    } catch (error) {
-      setSearchResults([]);
-      setSearchPopup(true);
-    }
+    alert(`Searching for: ${searchTerm}`);
     setSearchTerm("");
     setSearchOpen(false);
   };
 
-  function logout() {
-    axios.post("https://shop-store-1-z2v0.onrender.com/api/item/logout", {}, { withCredentials: true })
-      .then(() => {
-        window.location.reload();
-      })
-      .catch((err) => {
-        console.error("Logout error:", err);
-        alert("Logout failed. Please try again.");
-      });
-  }
-
-  const checkAuth = async () => {
-    try {
-      await axios.get("https://shop-store-1-z2v0.onrender.com/", { withCredentials: true });
-      navigate("/");
-    } catch (err) {
-      if (err.response && err.response.status === 401) {
-        navigate("/login");
-      } else {
-        console.error(err);
-      }
-    }
+  // Navigate to dashboard (home page)
+  const goHome = () => {
+    navigate("/dashboard");
+    setMenuOpen(false);
   };
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
 
   return (
     <nav className="text-white bg-zinc-900">
@@ -97,7 +55,7 @@ function Header() {
         >
           <input
             type="search"
-            className="flex-grow px-3 py-2 text-white border border-gray-600 rounded-md outline-none bg-zinc-800"
+            className="flex-grow px-3 py-2 border border-gray-600 rounded-md outline-none bg-zinc-800"
             placeholder="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -114,8 +72,10 @@ function Header() {
         {/* Desktop: Nav buttons */}
         <div className="hidden space-x-3 md:flex">
           <button
-            onClick={checkAuth}
-            className={`flex items-center space-x-1 btn ${isActive("/") ? "bg-blue-700 text-white" : "btn-outline-primary"}`}
+            onClick={goHome}
+            className={`flex items-center space-x-1 btn ${
+              isActive("/") ? "bg-blue-700 text-white" : "btn-outline-primary"
+            }`}
           >
             <i className="bi bi-house-door-fill"></i>
             <span>Home</span>
@@ -132,13 +92,12 @@ function Header() {
               <span>History</span>
             </button>
           </Link>
-          <button
-            onClick={logout}
-            className="flex items-center space-x-1 btn btn-outline-danger"
-          >
-            <i className="bi bi-box-arrow-right"></i>
-            <span>Logout</span>
-          </button>
+          <Link to="/logout">
+            <button className="flex items-center space-x-1 btn btn-outline-danger">
+              <i className="bi bi-box-arrow-right"></i>
+              <span>Logout</span>
+            </button>
+          </Link>
         </div>
 
         {/* Mobile: Search icon */}
@@ -172,73 +131,37 @@ function Header() {
           </form>
         </div>
       )}
+
       {/* Mobile: Menu */}
       {menuOpen && (
         <div className="px-4 pb-4 space-y-2 md:hidden">
           <button
-            onClick={() => {
-              checkAuth();
-              setMenuOpen(false);
-            }}
-            className={`block w-full px-3 py-2 text-left text-blue-600 rounded btn btn-outline-primary
-              ${isActive("/")
-                ? "bg-blue-600 text-white"
-                : "bg-outline-primary"
-              }
-          "`}
+            onClick={goHome}
+            className="block w-full px-3 py-2 text-left text-blue-600 rounded hover:bg-zinc-700"
           >
-            <i className="bi bi-house-door-fill"></i> <span>Home</span>
+            Home
           </button>
-          <Link to="/item" className="block px-3 py-2 text-left text-blue-600 rounded btn btn-outline-primary" onClick={() => setMenuOpen(false)}>
-            <i className="bi bi-diagram-3-fill"></i>  <span>Item</span>
-          </Link>
-          <Link to="/history" className="block px-3 py-2 text-left text-yellow-600 rounded btn btn-outline-warning" onClick={() => setMenuOpen(false)}>
-            <i className="bi bi-hourglass-bottom"></i> <span>History</span>
-          </Link>
-          <button
-            onClick={() => {
-              logout();
-              setMenuOpen(false);
-            }}
-            className="block w-full px-3 py-2 text-left text-red-600 rounded btn btn-outline-danger"
+          <Link
+            to="/item"
+            className="block px-3 py-2 text-blue-600 rounded hover:bg-zinc-700"
+            onClick={() => setMenuOpen(false)}
           >
-            <i className="bi bi-box-arrow-right"></i> <span>Logout</span>
-          </button>
-        </div>
-      )}
-      
-      {/* Search Popup */}
-      {searchPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black bg-opacity-40">
-          <div className="w-full max-w-lg p-4 bg-white text-black rounded shadow-lg overflow-y-auto max-h-[80vh]">
-            <h2 className="mb-3 text-lg font-bold">Search Results</h2>
-            {searchResults.length > 0 ? (
-              <ul className="space-y-3">
-                {searchResults.map((item) => (
-                  <li
-                    key={item._id}
-                    className={`p-3 rounded ${item.quantity >= 1 ? "bg-green-200" : "bg-red-200"}`}
-                  >
-                    <h3 className="font-bold">{item.productName}</h3>
-                    <p>Price: {item.productPrice}</p>
-                    <p>Sell Price: {item.productSellPrice}</p>
-                    <p>Quantity: {item.quantity}</p>
-                    {item.productDescription && <p>Description: {item.productDescription}</p>}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No results found</p>
-            )}
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setSearchPopup(false)}
-                className="px-4 py-2 text-white bg-gray-400 rounded outline-none"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+            Item
+          </Link>
+          <Link
+            to="/history"
+            className="block px-3 py-2 text-yellow-600 rounded hover:bg-zinc-700"
+            onClick={() => setMenuOpen(false)}
+          >
+            History
+          </Link>
+          <Link
+            to="/logout"
+            className="block px-3 py-2 text-red-600 rounded hover:bg-zinc-700"
+            onClick={() => setMenuOpen(false)}
+          >
+            Logout
+          </Link>
         </div>
       )}
     </nav>
