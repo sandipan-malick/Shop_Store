@@ -10,18 +10,19 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
 
-    const checkAuth = async () => {
-    try {
-    await axios.get("https://shop-store-1-z2v0.onrender.com", { withCredentials: true });
-      navigate("https://shop-store-1-z2v0.onrender.com");
-    } catch (err) {
-      if (err.response && err.response.status === 401) {
-        navigate("/login");
-      } else {
-        console.error(err);
-      }
+const checkAuth = async () => {
+  try {
+    await axios.get("https://shop-store-1-z2v0.onrender.com/", { withCredentials: true });
+    setLoading(false); // auth passed, show dashboard
+  } catch (err) {
+    if (err.response && err.response.status === 401) {
+      navigate("/login");
+    } else {
+      console.error(err);
     }
-  };
+  }
+};
+
 
   // Run auth check once when component mounts
   useEffect(() => {

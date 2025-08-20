@@ -1,5 +1,5 @@
 // src/pages/Login.jsx
-import React, { useState } from "react";
+import React, { cache, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -14,13 +14,18 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/login", form); // proxy works here
-     // alert("Login successful");
-      navigate("https://shop-store-1-z2v0.onrender.com");
+      await axios.post(
+        "https://shop-store-1-z2v0.onrender.com/api/user/login",
+        form,
+        { withCredentials: true }
+      );
+      navigate("/"); // only after login succeeds
     } catch (err) {
       console.error(err.response?.data?.error || "Login failed");
       alert(err.response?.data?.error || "Invalid credentials");
     }
+
+
   };
 
   return (
