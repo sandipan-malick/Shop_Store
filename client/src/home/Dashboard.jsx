@@ -12,7 +12,7 @@ function Dashboard() {
 
 const checkAuth = async () => {
   try {
-    await axios.get("https://shop-store-1-z2v0.onrender.com/", { withCredentials: true });
+    await axios.get("https://shop-store-1-z2v0.onrender.com/dashboard", { withCredentials: true });
     setLoading(false); // auth passed, show dashboard
   } catch (err) {
     if (err.response && err.response.status === 401) {

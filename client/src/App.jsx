@@ -21,7 +21,7 @@ function App() {
         <Route path="/register" element={<EmailSendOtp />} />
         <Route path="/forget/otp/verify" element={<ForgetOtpVerify />} />
         <Route path="/new/password" element={<ResetPassword />} />
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/item" element={<Item />} />
         <Route path="/history" element={<History />} />
       </Routes>
