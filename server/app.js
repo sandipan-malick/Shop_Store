@@ -22,7 +22,7 @@ connectDB();
 
 // Middleware setup
 app.use(cors({
-  origin: 'https://shop-store-1.netlify.app', // your frontend URL
+  origin: 'https://shop-store-data.netlify.app', // your frontend URL
   credentials: true, // allow cookies to be sent
 }));
 
