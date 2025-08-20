@@ -16,7 +16,7 @@ function Login() {
     try {
       await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/login", form); // proxy works here
      // alert("Login successful");
-      navigate("/");
+      navigate("https://shop-store-1-z2v0.onrender.com");
     } catch (err) {
       console.error(err.response?.data?.error || "Login failed");
       alert(err.response?.data?.error || "Invalid credentials");

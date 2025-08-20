@@ -9,26 +9,24 @@ function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get(
-          "https://shop-store-1-z2v0.onrender.com/",
-          { withCredentials: true } // ✅ send cookies
-        );
-        if (!res.data.loggedIn) {
-          navigate("/login");
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        navigate("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
 
+    const checkAuth = async () => {
+    try {
+    await axios.get("https://shop-store-1-z2v0.onrender.com", { withCredentials: true });
+      navigate("https://shop-store-1-z2v0.onrender.com");
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        navigate("/login");
+      } else {
+        console.error(err);
+      }
+    }
+  };
+
+  // Run auth check once when component mounts
+  useEffect(() => {
     checkAuth();
-  }, [navigate]);
+  }, []);
 
   if (loading) return <div className="text-white">Loading...</div>;
 
