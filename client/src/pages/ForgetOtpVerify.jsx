@@ -1,3 +1,4 @@
+// src/pages/ForgetOtpVerify.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -5,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 const ForgetOtpVerify = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const userData = location.state?.userData || {};
+  const userData = location.state?.userData || {}; // Contains email from ForgetPassword
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,17 +17,15 @@ const ForgetOtpVerify = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/verify-forget-otp", {
-        otp,
-        email: userData.email,
-      });
+      const response = await axios.post(
+        "https://shop-store-1-z2v0.onrender.com/api/user/verify-forget-otp",
+        { otp, email: userData.email }
+      );
 
       alert(response.data.message);
 
-      // ✅ Navigate to reset password page and pass the email
-      navigate("/new/password", {
-        state: { email: userData.email },
-      });
+      // Navigate to Reset Password page and pass email
+      navigate("/new/password", { state: { email: userData.email } });
     } catch (err) {
       setError(err.response?.data?.message || "OTP verification failed");
     } finally {
@@ -49,15 +48,13 @@ const ForgetOtpVerify = () => {
               id="otp"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-4 py-2 text-white rounded bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter the OTP sent to your email"
               required
+              className="w-full px-4 py-2 text-white rounded bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-center text-red-500">{error}</p>
-          )}
+          {error && <p className="text-sm text-center text-red-500">{error}</p>}
 
           <button
             type="submit"

@@ -6,6 +6,7 @@ import axios from "axios";
 function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -13,13 +14,20 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
+
     try {
-      await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/login", form); // proxy works here
-     // alert("Login successful");
-      navigate("/");
+      const res = await axios.post(
+        "https://shop-store-1-z2v0.onrender.com/api/user/login",
+        form
+      );
+
+      if (res.status === 200) {
+        // Login successful
+        navigate("/"); // Redirect to Dashboard
+      }
     } catch (err) {
-      console.error(err.response?.data?.error || "Login failed");
-      alert(err.response?.data?.error || "Invalid credentials");
+      setError(err.response?.data?.error || "Invalid credentials");
     }
   };
 
@@ -27,6 +35,9 @@ function Login() {
     <div className="flex items-center justify-center min-h-screen bg-zinc-800">
       <div className="w-full max-w-md p-8 text-white rounded-lg shadow-lg bg-zinc-900">
         <h2 className="mb-6 text-2xl font-bold text-center">Login</h2>
+
+        {error && <div className="mb-4 text-center text-red-500">{error}</div>}
+
         <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
           <input
             type="email"
@@ -53,11 +64,16 @@ function Login() {
             Login
           </button>
         </form>
+
         <p className="mt-4 text-sm text-center text-gray-300">
           Don't have an account?{" "}
-          <Link to="/registerPage" className="text-blue-400 hover:underline">Register</Link>
+          <Link to="/registerPage" className="text-blue-400 hover:underline">
+            Register
+          </Link>
           <br />
-          <Link to="/login/forgetPassword" className="text-blue-400 hover:underline">Forget Password</Link>
+          <Link to="/login/forgetPassword" className="text-blue-400 hover:underline">
+            Forget Password
+          </Link>
         </p>
       </div>
     </div>

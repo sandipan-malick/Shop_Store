@@ -6,7 +6,7 @@ const Section = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5080/api/item/history", { withCredentials: true })
+      .get("https://shop-store-1-z2v0.onrender.com/api/item/history", { withCredentials: true })
       .then((res) => setHistoryData(res.data))
       .catch((err) => console.error(err));
   }, []);

@@ -6,10 +6,11 @@ export default defineConfig({
   optimizeDeps: {
     include: ['jwt-decode'],
   },
+  base: './', // ✅ ensures correct paths on Netlify
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5080',
+        target: 'https://shop-store-1-z2v0.onrender.com', // deployed backend URL
         changeOrigin: true,
         secure: false,
       },

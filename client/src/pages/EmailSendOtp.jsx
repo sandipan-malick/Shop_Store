@@ -1,3 +1,4 @@
+// src/pages/EmailSendOtp.jsx
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -5,11 +6,11 @@ import axios from 'axios';
 function EmailSendOtp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const userData = location.state; // { name, email, password }
+  const userData = location.state; // { username, email, password }
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const hasSentOtp = useRef(false); //  Prevent multiple calls
+  const hasSentOtp = useRef(false); // Prevent multiple API calls
 
   useEffect(() => {
     const sendOtp = async () => {
@@ -21,7 +22,7 @@ function EmailSendOtp() {
         console.log('OTP sent:', res.data.message);
         setLoading(false);
 
-        //  Navigate after success
+        // Navigate to OTP verification page
         navigate('/regestation/email/otp-verify', { state: userData });
       } catch (err) {
         console.error('OTP send error:', err);
@@ -31,10 +32,10 @@ function EmailSendOtp() {
     };
 
     if (userData?.email && !hasSentOtp.current) {
-      hasSentOtp.current = true; //  Mark as sent
+      hasSentOtp.current = true; // Mark as sent
       sendOtp();
     } else if (!userData?.email) {
-      navigate('/register');
+      navigate('/registerPage'); // Redirect if no email
     }
   }, [userData, navigate]);
 

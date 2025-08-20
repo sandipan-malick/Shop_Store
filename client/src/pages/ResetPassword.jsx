@@ -1,22 +1,33 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/pages/ResetPassword.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 function ResetPassword() {
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const emailFromState = location.state?.email || ""; // email passed from OTP page
+
+  const [email, setEmail] = useState(emailFromState);
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!emailFromState) {
+      // Redirect if no email is passed (user navigated manually)
+      navigate("/login");
+    }
+  }, [emailFromState, navigate]);
 
   const handleReset = async (e) => {
     e.preventDefault();
     setError("");
     setMessage("");
 
-    if (!email.trim() || !newPassword.trim()) {
-      return setError("❌ Email and new password are required.");
+    if (!newPassword.trim()) {
+      return setError("❌ New password is required.");
     }
 
     if (newPassword.length < 6) {
@@ -25,17 +36,16 @@ function ResetPassword() {
 
     setLoading(true);
     try {
-      const res = await axios.post("https://shop-store-1-z2v0.onrender.com/api/user/reset-password", {
-        email,
-        newPassword,
-      });
+      const res = await axios.post(
+        "https://shop-store-1-z2v0.onrender.com/api/user/reset-password",
+        { email, newPassword }
+      );
 
       setMessage(res.data.message || "Password successfully reset.");
       setError("");
-      // Redirect after a short delay to show success message
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+
+      // Redirect to login after 2 seconds
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
       setMessage("");
@@ -52,11 +62,9 @@ function ResetPassword() {
         <form className="flex flex-col space-y-4" onSubmit={handleReset}>
           <input
             type="email"
-            placeholder="Enter your registered email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full h-10 px-4 placeholder-gray-400 rounded-md outline-none bg-zinc-700"
-            required
+            disabled
+            className="w-full h-10 px-4 placeholder-gray-400 rounded-md outline-none cursor-not-allowed bg-zinc-700"
           />
           <input
             type="password"

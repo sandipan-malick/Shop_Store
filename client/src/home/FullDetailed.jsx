@@ -11,13 +11,15 @@ function FullDetailed() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5080/api/item/add-insvement", { withCredentials: true })
+      .get("https://shop-store-1-z2v0.onrender.com/api/item/add-invesment", {
+        withCredentials: true, // ensure cookies are sent
+      })
       .then((res) => {
         setStats({
-          combinedTotalInvestment: res.data.combinedTotalInvestment,
-          dailySales: res.data.dailySales,
-          totalSales: res.data.totalSales,
-          totalProfit: res.data.totalProfit,
+          combinedTotalInvestment: res.data.combinedTotalInvestment || 0,
+          dailySales: res.data.dailySales || 0,
+          totalSales: res.data.totalSales || 0,
+          totalProfit: res.data.totalProfit || 0,
         });
       })
       .catch((err) => console.error("Error fetching investment:", err));

@@ -24,7 +24,7 @@ function Header() {
     }
   };
   function logout() {
-    axios.post("http://localhost:5080/api/item/logout", {}, { withCredentials: true })
+    axios.post("https://shop-store-1-z2v0.onrender.com/api/item/logout", {}, { withCredentials: true })
       .then(() => {
         window.location.reload();
       })

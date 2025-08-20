@@ -4,7 +4,6 @@ const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const path = require('path');
 const cors = require('cors');
 
 // Import Routes
@@ -23,28 +22,29 @@ connectDB();
 
 // Middleware setup
 app.use(cors({
-  origin: 'https://shop-store-1-z2v0.onrender.com',
-
-  credentials: true
+  origin: 'https://shop-store-1.netlify.app', // your frontend URL
+  credentials: true, // allow cookies to be sent
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(session({
-  secret: 'yourSecretKey',
+  secret: process.env.SESSION_SECRET || 'yourSecretKey',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 24 * 60 * 60 * 1000 // 1 day
-  }
+    secure: true, // use HTTPS in production
+    sameSite: 'none', // needed for cross-site cookies
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  },
 }));
 
 // Routes
 app.use('/api/user', userRoutes);
 app.use('/api/item', itemRoutes);
-// Protected Dashboard Route
+
+// Protected Dashboard Routes
 app.get('/dashboard', authMiddleware, (req, res) => {
   res.send(`Welcome to the Dashboard, ${req.user.username}!`);
 });
@@ -57,7 +57,8 @@ app.get('/history', authMiddleware, (req, res) => {
 app.get('/add-history', authMiddleware, (req, res) => {
   res.send(`Welcome to the Add History Page, ${req.user.username}!`);
 });
-// Login Page Route
+
+// Fallback Login Route
 app.get('/login', (req, res) => {
   res.send('Please login first.');
 });

@@ -1,3 +1,4 @@
+// src/pages/OtpVerify.jsx
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -6,12 +7,13 @@ function OtpVerify() {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(300);
+  const [timer, setTimer] = useState(300); // 5 minutes
   const [resendDisabled, setResendDisabled] = useState(true);
 
   const navigate = useNavigate();
   const location = useLocation();
   const userData = location.state;
+
   const formatTime = (secs) => {
     const min = Math.floor(secs / 60)
       .toString()
@@ -20,28 +22,33 @@ function OtpVerify() {
     return `${min}:${sec}`;
   };
 
+  // Timer countdown effect
   useEffect(() => {
     let interval;
     if (resendDisabled && timer > 0) {
       interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-    } else {
+    } else if (timer === 0) {
       setResendDisabled(false);
     }
     return () => clearInterval(interval);
   }, [resendDisabled, timer]);
 
+  // Submit OTP for verification
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await axios.post('https://shop-store-1-z2v0.onrender.com/api/user/verify-otp', {
-        otp,
-        username: userData.username,
-        email: userData.email,
-        password: userData.password,
-      });
+      const response = await axios.post(
+        'https://shop-store-1-z2v0.onrender.com/api/user/verify-otp',
+        {
+          otp,
+          username: userData.username,
+          email: userData.email,
+          password: userData.password,
+        }
+      );
 
       alert(response.data.message);
       navigate('/login');
@@ -52,13 +59,14 @@ function OtpVerify() {
     }
   };
 
+  // Resend OTP
   const handleResend = async () => {
     try {
-      await axios.post('/api/user/send-otp', {
+      await axios.post('https://shop-store-1-z2v0.onrender.com/api/user/send-otp', {
         email: userData.email,
       });
-      alert("OTP resent to your email.");
-      setTimer(30);
+      alert('OTP resent to your email.');
+      setTimer(300); // Reset 5 minutes
       setResendDisabled(true);
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to resend OTP');
@@ -98,11 +106,11 @@ function OtpVerify() {
               type="button"
               onClick={handleResend}
               disabled={resendDisabled}
-              className={`ml-1 underline ${resendDisabled ? 'text-gray-500' : 'text-blue-400 hover:text-blue-200'
-                }`}
+              className={`ml-1 underline ${
+                resendDisabled ? 'text-gray-500' : 'text-blue-400 hover:text-blue-200'
+              }`}
             >
               Resend {resendDisabled ? `(${formatTime(timer)})` : ''}
-
             </button>
           </span>
         </div>
