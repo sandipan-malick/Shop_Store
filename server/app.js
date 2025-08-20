@@ -12,22 +12,30 @@ const userRoutes = require('./routes/userRoutes1234');
 const itemRoutes = require('./routes/itemRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 
-// Load environment variables FIRST
+// Load environment variables
 dotenv.config();
 
 // Initialize express app
 const app = express();
 
-// Connect to MongoDB with better error handling
-mongoose.connect(process.env.MONGODB_URI, {
+// Check if MONGODB_URI is set
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables');
+  console.error('Please set MONGODB_URI in your Render dashboard environment variables');
+  process.exit(1);
+}
+
+// Connect to MongoDB
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000, // 30 seconds timeout
+  serverSelectionTimeoutMS: 30000,
 })
 .then(() => console.log('MongoDB connected successfully'))
 .catch(err => {
   console.error('MongoDB connection error:', err);
-  console.log('Please check your MONGODB_URI and whitelist IP in MongoDB Atlas');
+  console.log('Please whitelist IP in MongoDB Atlas: https://cloud.mongodb.com/');
 });
 
 // Middleware
@@ -38,18 +46,15 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Debug: Check if MONGODB_URI is loaded
-console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Loaded' : 'Missing');
-
-// Session middleware with MongoDB storage - FIXED
+// Session middleware with MongoDB storage
 app.use(session({
-  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-key-for-development',
+  secret: process.env.JWT_SECRET || 'fallback-secret-key-for-development',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI, // This must be defined
+    mongoUrl: mongoUri,
     collectionName: 'sessions',
-    ttl: 24 * 60 * 60, // 1 day in seconds
+    ttl: 24 * 60 * 60,
   }),
   cookie: {
     httpOnly: true,
@@ -70,14 +75,16 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     message: 'Server is running',
     database: dbStatus,
-    mongodb_uri: process.env.MONGODB_URI ? 'configured' : 'missing'
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Test endpoint to check session
-app.get('/test-session', (req, res) => {
-  req.session.test = 'Session is working!';
-  res.json({ message: 'Session test', session: req.session });
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Server is working!',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Protected routes
@@ -101,8 +108,7 @@ app.use('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5080;
-// Bind to 0.0.0.0 for Render deployment
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`Health check: http://0.0.0.0:${PORT}/health`);
 });
