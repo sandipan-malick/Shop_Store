@@ -92,6 +92,7 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "All fields required" });
     }
 
+    // Find OTP record
     const otpRecord = await Otp.findOne({ email });
     if (
       !otpRecord ||
@@ -101,15 +102,18 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    // Hash password & save user
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({ username, email, password: hashedPassword });
+    // ✅ Do NOT hash password here (schema will hash automatically)
+    await User.create({ username, email, password });
 
-    await Otp.deleteOne({ email }); // cleanup
+    // Cleanup OTP
+    await Otp.deleteOne({ email });
 
-    sendEmail(email, "✅ Registration Successful", `Hi ${username}, your registration was successful!`).catch(
-      (e) => console.error("Registration email error:", e)
-    );
+    // Send success email
+    sendEmail(
+      email,
+      "✅ Registration Successful",
+      `Hi ${username}, your registration was successful!`
+    ).catch((e) => console.error("Registration email error:", e));
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
