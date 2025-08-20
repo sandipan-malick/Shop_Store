@@ -12,19 +12,23 @@ const userRoutes = require('./routes/userRoutes1234');
 const itemRoutes = require('./routes/itemRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 
-// Load environment variables
+// Load environment variables (for local development)
 dotenv.config();
 
 // Initialize express app
 const app = express();
 
-// Check if MONGODB_URI is set
+// Get MongoDB URI from environment variables
 const mongoUri = process.env.MONGODB_URI;
+
+// Check if MONGODB_URI is set
 if (!mongoUri) {
   console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables');
   console.error('Please set MONGODB_URI in your Render dashboard environment variables');
   process.exit(1);
 }
+
+console.log('MongoDB URI loaded successfully');
 
 // Connect to MongoDB
 mongoose.connect(mongoUri, {
@@ -48,7 +52,7 @@ app.use(cookieParser());
 
 // Session middleware with MongoDB storage
 app.use(session({
-  secret: process.env.JWT_SECRET || 'fallback-secret-key-for-development',
+  secret: process.env.JWT_SECRET || 'fallback-secret-key-for-development-only',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
@@ -83,7 +87,8 @@ app.get('/health', (req, res) => {
 app.get('/test', (req, res) => {
   res.json({ 
     message: 'Server is working!',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    mongodb_uri: mongoUri ? 'configured' : 'missing'
   });
 });
 
