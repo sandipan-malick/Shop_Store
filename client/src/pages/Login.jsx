@@ -19,7 +19,7 @@ function Login() {
         form,
         { withCredentials: true }
       );
-      navigate("https://shop-store-1-z2v0.onrender.com/dashboard"); // only after login succeeds
+      navigate("/dashboard"); // only after login succeeds
     } catch (err) {
       console.error(err.response?.data?.error || "Login failed");
       alert(err.response?.data?.error || "Invalid credentials");
