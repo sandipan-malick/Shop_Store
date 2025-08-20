@@ -5,14 +5,14 @@ const sendEmail = require("../utils/sendMail");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const otpGenerator = require("otp-generator");
-//  1. Check Email Already Exists
+const bcrypt = require("bcryptjs");
+
+// 1️⃣ Check Email
 exports.checkEmail = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (user) {
-      return res.status(409).json({ error: "Email already registered" });
-    }
+    if (user) return res.status(409).json({ error: "Email already registered" });
     return res.json({ message: "Email is available" });
   } catch (err) {
     console.error("Check email error:", err);
@@ -20,27 +20,21 @@ exports.checkEmail = async (req, res) => {
   }
 };
 
-//  2. Send OTP to Email
+// 2️⃣ Send OTP
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;
-
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already registered" });
-    }
+    if (existingUser) return res.status(400).json({ error: "Email already registered" });
 
     let existingOtp = await Otp.findOne({ email });
-
     const now = new Date();
 
-    // Ban check
-    if (existingOtp && existingOtp.bannedUntil && existingOtp.bannedUntil > now) {
+    if (existingOtp?.bannedUntil && existingOtp.bannedUntil > now)
       return res.status(403).json({ error: "Too many failed attempts. Try again later." });
-    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
     if (existingOtp) {
       existingOtp.otp = otp;
@@ -52,21 +46,7 @@ exports.sendOtp = async (req, res) => {
       await Otp.create({ email, otp, otpExpires });
     }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Your OTP for Registration",
-      html: `<p>Your OTP is: <b>${otp}</b>. It expires in 5 minutes.</p>`,
-    });
-
+    await sendEmail(email, "Your OTP for Registration", `<p>Your OTP is: <b>${otp}</b>. Expires in 5 mins.</p>`);
     res.json({ message: "OTP sent successfully" });
   } catch (err) {
     console.error("Send OTP error:", err);
@@ -74,239 +54,144 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
-//  3. Verify OTP and Register User
+// 3️⃣ Verify OTP & Register User
 exports.verifyOTP = async (req, res) => {
   try {
     const { otp, username, email, password } = req.body;
+    if (!otp || !username || !email || !password)
+      return res.status(400).json({ message: "All fields required" });
 
-    // Validate required fields
-    if (!otp || !username || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    // Check OTP from DB
     const otpRecord = await Otp.findOne({ email });
+    if (!otpRecord || otpRecord.otp !== otp)
+      return res.status(400).json({ message: "Invalid or expired OTP" });
 
-    if (!otpRecord || otpRecord.otp !== otp) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
-    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, email, password: hashedPassword });
 
-    // Save user
-    const user = await User.create({ username, email, password });
-
-    // Delete OTP from DB (optional)
     await Otp.deleteOne({ email });
 
-    res.status(201).json({ message: 'User registered successfully' });
-    await sendEmail(
-      email,
-      "🎉 Registration Successful",
-      `Hi ${username},\n\nYour registration was successful!\n\nThanks for joining us.\n\n- Team ABC App`
-    );
-
-    // Optionally delete the OTP
-    await Otp.deleteOne({ email });
+    await sendEmail(email, "🎉 Registration Successful", `Hi ${username}, your registration was successful!`);
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    console.error('OTP verify error:', err);
-    res.status(500).json({ message: 'Server error during verification' });
+    console.error("OTP verify error:", err);
+    res.status(500).json({ message: "Server error during verification" });
   }
 };
 
-//  4. Login
+// 4️⃣ Login
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+    const token = jwt.sign({ userId: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
-
-    // Optional: send login success email before sending the response
-    await sendEmail(
-      email,
-      "🎉 Login Successful",
-      `Hi ${user.username},\n\nYour login was successful!\n\nThanks for joining us.\n\n- Team ABC App`
-    );
-
-    // Set the cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only use HTTPS in prod
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
+      maxAge: 24 * 60 * 60 * 1000
     });
 
-    // Send final response once
+    await sendEmail(email, "🎉 Login Successful", `Hi ${user.username}, your login was successful!`);
     res.json({ message: "Login successful", token });
-
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-
-// Forget Password
+// 5️⃣ Forgot Password
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required." });
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required." });
-    }
-
-    //  Step 1: Check if user exists
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "❌ Email not registered" });
-    }
+    if (!user) return res.status(404).json({ message: "Email not registered" });
 
-    //  Step 2: Generate new OTP
-    const generatedOtp = otpGenerator.generate(6, {
-      upperCaseAlphabets: false,
-      specialChars: false,
-      digits: true,
-      lowerCaseAlphabets: false,
-    });
+    const generatedOtp = otpGenerator.generate(6, { digits: true, upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
-
-    //  Step 3: Check if OTP record already exists
     let existingOtp = await Otp.findOne({ email });
-
     if (existingOtp) {
-      // Ban check
-      if (existingOtp.bannedUntil && existingOtp.bannedUntil > new Date()) {
+      if (existingOtp.bannedUntil && existingOtp.bannedUntil > new Date())
         return res.status(403).json({ message: "You are temporarily banned. Try again later." });
-      }
 
-      // If previous OTP expired, allow new one
-      if (existingOtp.otpExpires < new Date()) {
-        existingOtp.otp = generatedOtp;
-        existingOtp.otpExpires = otpExpires;
-        existingOtp.failedAttempts = 0;
-        existingOtp.bannedUntil = null;
-        await existingOtp.save();
-        console.log(" OTP updated:", generatedOtp);
-      } else {
-        return res.status(429).json({ message: "OTP already sent. Wait before requesting a new one." });
-      }
+      existingOtp.otp = generatedOtp;
+      existingOtp.otpExpires = otpExpires;
+      existingOtp.failedAttempts = 0;
+      existingOtp.bannedUntil = null;
+      await existingOtp.save();
     } else {
-      // Create new OTP record
-      await Otp.create({
-        email,
-        otp: generatedOtp,
-        otpExpires,
-        failedAttempts: 0,
-      });
-      console.log(" OTP created:", generatedOtp);
+      await Otp.create({ email, otp: generatedOtp, otpExpires, failedAttempts: 0 });
     }
 
-    //  Step 4: Send Email
-    await sendEmail(
-      email,
-      "🔐 Reset Your Password - OTP",
-      `Your OTP for password reset is: ${generatedOtp} This OTP is valid for 5 minutes.`
-    );
-
-    return res.status(200).json({ message: " OTP sent to your email" });
+    await sendEmail(email, "🔐 Reset Your Password - OTP", `Your OTP is: ${generatedOtp}. Valid for 5 mins.`);
+    res.status(200).json({ message: "OTP sent to your email" });
   } catch (err) {
-    console.error(" Forgot Password Error:", err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.verifyForgetOtp = async (req, res) => {
-  try {
-    const { otp } = req.body;
-    console.log(otp);
-    const record = await Otp.findOne({ otp });
-    console.log(record);
-    console.log(record.email);
-
-    // 🔐 Step 1: Check if record exists
-    if (!record) {
-      return res.status(400).json({ message: "OTP not found. Try again." });
-    }
-
-    // 🔐 Step 2: Ban check
-    if (record.bannedUntil && record.bannedUntil > new Date()) {
-      return res.status(403).json({ message: "You are temporarily banned due to repeated failed attempts. Try later." });
-    }
-
-    // 🔐 Step 3: Expiry check
-    if (record.otpExpires < new Date()) {
-      return res.status(400).json({ message: "OTP expired. Request a new one." });
-    }
-
-    // 🔐 Step 4: Match OTP (Safe comparison)
-    if (record.otp !== String(otp).trim()) {
-      record.failedAttempts += 1;
-
-      if (record.failedAttempts >= 5) {
-        record.bannedUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-        await record.save();
-        return res.status(403).json({ message: "Too many failed attempts. You are temporarily banned." });
-      }
-
-      await record.save();
-      return res.status(400).json({ message: "Incorrect OTP. Try again." });
-    }
-
-    //  OTP correct
-
-    await Otp.deleteOne({ otp }); // remove OTP after success
-
-    res.status(200).json({ message: "OTP verified successfully" });
-    await ResetRequest.create({ email: record.email });
-    console.log(record.email);
-  } catch (err) {
-    console.error("Error in verifyForgetOtp:", err);
+    console.error("Forgot Password Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// 6️⃣ Verify Forget OTP
+exports.verifyForgetOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const record = await Otp.findOne({ otp });
+    if (!record) return res.status(400).json({ message: "OTP not found" });
+
+    if (record.bannedUntil && record.bannedUntil > new Date())
+      return res.status(403).json({ message: "Temporarily banned" });
+
+    if (record.otpExpires < new Date())
+      return res.status(400).json({ message: "OTP expired" });
+
+    if (record.otp !== String(otp).trim()) {
+      record.failedAttempts += 1;
+      if (record.failedAttempts >= 5) {
+        record.bannedUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await record.save();
+        return res.status(403).json({ message: "Too many failed attempts" });
+      }
+      await record.save();
+      return res.status(400).json({ message: "Incorrect OTP" });
+    }
+
+    await Otp.deleteOne({ otp });
+    await ResetRequest.create({ email: record.email });
+    res.status(200).json({ message: "OTP verified successfully" });
+  } catch (err) {
+    console.error("verifyForgetOtp Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// 7️⃣ Reset Password
 exports.resetPassword = async (req, res) => {
   try {
     const { email, newPassword } = req.body;
+    if (!email || !newPassword) return res.status(400).json({ message: "Email & new password required" });
 
-    if (!email || !newPassword) {
-      return res.status(400).json({ message: "Email and new password are required." });
-    }
-
-    // ✅ Step 1: Check if ResetRequest entry exists
     const resetEntry = await ResetRequest.findOne({ email });
+    if (!resetEntry) return res.status(403).json({ message: "Unauthorized request" });
 
-    if (!resetEntry) {
-      return res.status(403).json({ message: "Unauthorized request. Please verify OTP first." });
-    }
-
-    // ✅ Step 2: Update password
     const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!user) {
-      return res.status(404).json({ message: "User with this email does not exist." });
-    }
-
-    user.password = newPassword;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
     await user.save();
 
-    // ✅ Step 3: Delete ResetRequest entry
     await ResetRequest.deleteOne({ email });
-
-    res.status(200).json({ message: "Password updated successfully." });
+    res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("Reset Password Error:", err);
-    res.status(500).json({ message: "Server error while resetting password." });
+    res.status(500).json({ message: "Server error" });
   }
 };

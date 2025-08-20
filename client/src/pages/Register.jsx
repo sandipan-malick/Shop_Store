@@ -19,7 +19,7 @@ function Register() {
       });
 
       if (res.status === 200) {
-        navigate('/register', { state: form }); // EmailSendOtp page
+        navigate('/register', { state: form });  // EmailSendOtp page
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
@@ -38,8 +38,8 @@ function Register() {
           <button type="submit" className="w-full h-10 px-4 text-white bg-blue-600 rounded-md hover:bg-blue-700">Send OTP</button>
         </form>
         <p className="mt-4 text-sm text-center text-gray-300">
-          Already have an account? <a href="/login" className="text-blue-400 hover:underline">Login</a><br />
-          <a href="/login/forgetPassword" className="text-blue-400 hover:underline">Forget Password</a>
+          Already have an account? <Link to="/login" className="text-blue-400 hover:underline">Login</Link><br />
+          <Link to="/login/forgetPassword" className="text-blue-400 hover:underline">Forget Password</Link>
         </p>
       </div>
     </div>

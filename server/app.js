@@ -7,7 +7,7 @@ const session = require('express-session');
 const cors = require('cors');
 
 // Import Routes
-const userRoutes = require('./routes/userRoutes1234');
+const userRoutes = require('./routes/userRoutes');
 const itemRoutes = require('./routes/itemRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 
@@ -20,12 +20,11 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Middleware setup
+// Middleware
 app.use(cors({
   origin: 'https://shop-store-data.netlify.app', // your frontend URL
-  credentials: true, // allow cookies to be sent
+  credentials: true,
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(session({
@@ -34,9 +33,9 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: true, // use HTTPS in production
-    sameSite: 'none', // needed for cross-site cookies
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    maxAge: 24 * 60 * 60 * 1000,
   },
 }));
 
@@ -44,27 +43,14 @@ app.use(session({
 app.use('/api/user', userRoutes);
 app.use('/api/item', itemRoutes);
 
-// Protected Dashboard Routes
-app.get('/dashboard', authMiddleware, (req, res) => {
-  res.send(`Welcome to the Dashboard, ${req.user.username}!`);
-});
-app.get('/item', authMiddleware, (req, res) => {
-  res.send(`Welcome to the Item Page, ${req.user.username}!`);
-});
-app.get('/history', authMiddleware, (req, res) => {
-  res.send(`Welcome to the History Page, ${req.user.username}!`);
-});
-app.get('/add-history', authMiddleware, (req, res) => {
-  res.send(`Welcome to the Add History Page, ${req.user.username}!`);
-});
+// Protected routes
+app.get('/dashboard', authMiddleware, (req, res) => res.send(`Welcome to Dashboard, ${req.user.username}`));
+app.get('/item', authMiddleware, (req, res) => res.send(`Welcome to Item, ${req.user.username}`));
+app.get('/history', authMiddleware, (req, res) => res.send(`Welcome to History, ${req.user.username}`));
+app.get('/add-history', authMiddleware, (req, res) => res.send(`Welcome to Add History, ${req.user.username}`));
 
-// Fallback Login Route
-app.get('/login', (req, res) => {
-  res.send('Please login first.');
-});
+// Login fallback
+app.get('/login', (req, res) => res.send('Please login first.'));
 
-// Start server
 const PORT = process.env.PORT || 5080;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

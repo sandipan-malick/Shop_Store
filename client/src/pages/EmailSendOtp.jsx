@@ -23,7 +23,7 @@ function EmailSendOtp() {
         setLoading(false);
 
         // Navigate to OTP verification page
-        navigate('/regestation/email/otp-verify', { state: userData });
+        navigate('/registration/email/otp-verify', { state: userData });
       } catch (err) {
         console.error('OTP send error:', err);
         setLoading(false);
