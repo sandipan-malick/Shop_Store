@@ -13,7 +13,7 @@ function Dashboard() {
     const checkAuth = async () => {
       try {
         const res = await axios.get(
-          "https://shop-store-1-z2v0.onrender.com/api/auth/check",
+          "https://shop-store-1-z2v0.onrender.com/",
           { withCredentials: true } // ✅ send cookies
         );
         if (!res.data.loggedIn) {
