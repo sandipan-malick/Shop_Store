@@ -270,7 +270,7 @@ function Header() {
           </div>
           <div className={`w-full md:w-auto md:flex md:items-center gap-3 ${menuOpen ? "block" : "hidden"}`}>
             <div className="flex flex-col gap-2 mt-3 md:flex-row md:mt-0">
-              <Link to="/" className="flex items-center space-x-1 btn btn-outline-primary">
+              <Link to="/dashboard" className="flex items-center space-x-1 btn btn-outline-primary">
                 <button>
                   <i className="bi bi-house-door-fill"></i> <span>Home</span>
                 </button>
