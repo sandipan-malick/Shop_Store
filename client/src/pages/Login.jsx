@@ -19,7 +19,8 @@ function Login() {
         form,
         { withCredentials: true }
       );
-      navigate("/dashboard"); // only after login succeeds
+      navigate("/dashboard");
+      res.status(200)// only after login succeeds
     } catch (err) {
       console.error(err.response?.data?.error || "Login failed");
       alert(err.response?.data?.error || "Invalid credentials");
