@@ -16,10 +16,10 @@ function FullDetailed() {
       })
       .then((res) => {
         setStats({
-          combinedTotalInvestment: res.data.combinedTotalInvestment || 0,
-          dailySales: res.data.dailySales || 0,
-          totalSales: res.data.totalSales || 0,
-          totalProfit: res.data.totalProfit || 0,
+          combinedTotalInvestment: res.data.totalInvestment || 0, // backend sends totalInvestment
+          dailySales: res.data.dailySales || 0,                  // backend sends dailySales
+          totalSales: res.data.totalSales || 0,                  // backend sends totalSales
+          totalProfit: res.data.profit || 0,                     // backend sends profit
         });
       })
       .catch((err) => console.error("Error fetching investment:", err));
@@ -33,25 +33,33 @@ function FullDetailed() {
         {/* Total Investment */}
         <div className="p-6 text-white transition bg-blue-600 rounded-lg shadow-md hover:shadow-lg">
           <h2 className="text-lg font-semibold">Total Investment</h2>
-          <p className="mt-2 text-2xl font-bold">₹{stats.combinedTotalInvestment.toFixed(2)}</p>
+          <p className="mt-2 text-2xl font-bold">
+            ₹{stats.combinedTotalInvestment.toFixed(2)}
+          </p>
         </div>
 
         {/* Daily Sales */}
         <div className="p-6 text-white transition bg-green-600 rounded-lg shadow-md hover:shadow-lg">
           <h2 className="text-lg font-semibold">Daily Sales</h2>
-          <p className="mt-2 text-2xl font-bold">₹{stats.dailySales.toFixed(2)}</p>
+          <p className="mt-2 text-2xl font-bold">
+            ₹{stats.dailySales.toFixed(2)}
+          </p>
         </div>
 
         {/* Total Sales */}
         <div className="p-6 text-white transition bg-yellow-500 rounded-lg shadow-md hover:shadow-lg">
           <h2 className="text-lg font-semibold">Total Sales</h2>
-          <p className="mt-2 text-2xl font-bold">₹{stats.totalSales.toFixed(2)}</p>
+          <p className="mt-2 text-2xl font-bold">
+            ₹{stats.totalSales.toFixed(2)}
+          </p>
         </div>
 
         {/* Total Profit */}
         <div className="p-6 text-white transition bg-red-500 rounded-lg shadow-md hover:shadow-lg">
           <h2 className="text-lg font-semibold">Total Profit</h2>
-          <p className="mt-2 text-2xl font-bold">₹{stats.totalProfit.toFixed(2)}</p>
+          <p className="mt-2 text-2xl font-bold">
+            ₹{stats.totalProfit.toFixed(2)}
+          </p>
         </div>
       </div>
     </div>
