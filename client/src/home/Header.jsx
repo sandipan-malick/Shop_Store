@@ -187,42 +187,6 @@ function Header() {
       alert("Failed to update quantity and price");
     }
   };
-
-  // EDIT SELL PRICE ONLY
-  const openEditSellPriceInput = (id, currentSellPrice) => {
-    setDecreaseForItem(null);
-    setUpdateForItem(null);
-    setEditSellPriceForItem(id);
-    setEditSellPriceValue(currentSellPrice !== undefined ? currentSellPrice : "");
-  };
-
-  const applyEditSellPrice = async (id) => {
-    const newSell = Number(editSellPriceValue);
-    if (isNaN(newSell) || newSell < 0) {
-      alert("Enter a valid sell price (0 or more)");
-      return;
-    }
-    try {
-      const payload = { productSellPrice: newSell };
-      const res = await axios.put(
-        `https://shop-store-1-z2v0.onrender.com/api/item/${id}`,
-        payload,
-        { withCredentials: true, headers: { "Content-Type": "application/json" } }
-      );
-      setSearchResults((prev) =>
-        prev.map((item) => (item._id === id ? res.data.item : item))
-      );
-      setEditSellPriceForItem(null);
-      setEditSellPriceValue("");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to update selling price");
-    }
-  };
-
-  // Auth check on mount
-
-
   return (
     <>
       <nav className="text-white shadow-md bg-zinc-900">
@@ -316,12 +280,6 @@ function Header() {
                     {item.productDescription && <p>Description: {item.productDescription}</p>}
                     <div className="flex flex-wrap gap-2 mt-2">
                       <button
-                        onClick={() => handleDelete(item._id)}
-                        className="px-3 py-1 text-white bg-red-600 rounded outline-none"
-                      >
-                        Delete
-                      </button>
-                      <button
                         onClick={() => openDecreaseInput(item._id)}
                         className="px-3 py-1 text-white bg-yellow-600 rounded outline-none"
                       >
@@ -362,89 +320,6 @@ function Header() {
                             }}
                             className="w-24 px-2 py-1 border rounded outline-none"
                           />
-                       
-                     
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Update to inline editor (quantity & price) */}
-                    {updateForItem === item._id && (
-                      <div className="w-full p-3 mt-3 bg-blue-100 border border-blue-300 rounded">
-                        <label className="block mb-1 text-sm font-semibold text-blue-900">
-                          Add quantity (increment)
-                        </label>
-                        <div className="flex items-center gap-2 mb-3">
-                          <input
-                            type="number"
-                            min="0"
-                            value={updateQuantityValue}
-                            onChange={(e) => setUpdateQuantityValue(Number(e.target.value))}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                applyUpdateQuantityAndPrice(item._id);
-                              }
-                            }}
-                            className="w-24 px-2 py-1 border rounded outline-none"
-                            placeholder="Quantity to add"
-                          />
-                          <button
-                            onClick={() => applyUpdateQuantityAndPrice(item._id)}
-                            className="px-3 py-1 text-white bg-blue-600 rounded"
-                          >
-                            Apply
-                          </button>
-                        </div>
-                        <label className="block mb-1 text-sm font-semibold text-blue-900">
-                          Set new price
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="0"
-                            value={updatePriceValue}
-                            onChange={(e) => setUpdatePriceValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                applyUpdateQuantityAndPrice(item._id);
-                              }
-                            }}
-                            className="w-24 px-2 py-1 border rounded outline-none"
-                            placeholder="Price"
-                          />
-                    
-                     
-                        </div>
-                      </div>
-                    )}
-
-                    {/* EDIT SELL PRICE ONLY */}
-                    {editSellPriceForItem === item._id && (
-                      <div className="w-full p-3 mt-3 border rounded bg-cyan-100 border-cyan-300">
-                        <label className="block mb-1 text-sm font-semibold text-cyan-900">
-                          Set new selling price
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="0"
-                            value={editSellPriceValue}
-                            onChange={(e) => setEditSellPriceValue(e.target.value)}
-                            className="w-24 px-2 py-1 border rounded outline-none"
-                            placeholder="Sell Price"
-                          />
-                          <button
-                            onClick={() => applyEditSellPrice(item._id)}
-                            className="px-3 py-1 text-white rounded bg-cyan-600"
-                          >
-                            Apply
-                          </button>
-                          <button
-                            onClick={() => setEditSellPriceForItem(null)}
-                            className="px-3 py-1 rounded text-cyan-900 bg-cyan-200"
-                          >
-                            Cancel
-                          </button>
                         </div>
                       </div>
                     )}
