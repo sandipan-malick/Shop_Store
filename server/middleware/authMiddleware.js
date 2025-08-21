@@ -1,21 +1,32 @@
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
-  // Get token from header or cookies
-  const authHeader = req.get('Authorization');
-  const token = authHeader?.replace('Bearer ', '') || req.cookies?.token;
-
-  if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
-  }
-
   try {
+    // Get token from cookies (primary) or Authorization header
+    const authHeader = req.get('Authorization');
+    const token = req.cookies?.token || authHeader?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ message: 'No token, authorization denied' });
+    }
+
+    // Verify JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    // Attach user info to request
+    req.user = decoded; // decoded can be { userId } from your login JWT
+
     next();
   } catch (err) {
     console.error('Invalid token:', err.message);
-    res.clearCookie('token'); // make sure cookie options match your cookie setup
+
+    // Clear cookie (must match cookie options exactly)
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+    });
+
     return res.status(401).json({ message: 'Token is not valid' });
   }
 };
