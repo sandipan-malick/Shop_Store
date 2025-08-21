@@ -123,12 +123,15 @@ function Header() {
             <div className="flex flex-col gap-2 mt-3 md:flex-row md:mt-0">
               <Link
                 to="/dashboard"
-                className="flex items-center space-x-1 btn btn-outline-primary"
-              >
-                <button>
-                  <i className="bi bi-house-door-fill"></i> <span>Home</span>
-                </button>
-              </Link>
+                   className={`flex items-center space-x-1 btn btn-outline-primary ${
+                   isActive("/dashboard") ? "bg-blue-700 text-white" : ""
+                  }`}
+                    >
+                   <button>
+                      <i className="bi bi-house-door-fill"></i> <span>Home</span>
+                     </button>
+                   </Link>
+
               <Link
                 to="/item"
                 className={`flex items-center space-x-1 btn btn-outline-primary ${
