@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+// Header.jsx
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,7 +15,10 @@ function Header() {
   // Handle search form submission
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    alert(`Searching for: ${searchTerm}`);
+    if (!searchTerm.trim()) return;
+
+    // Navigate to /search?q=keyword
+    navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
     setSearchTerm("");
     setSearchOpen(false);
   };
@@ -23,7 +26,6 @@ function Header() {
   return (
     <nav className="text-white bg-zinc-900">
       <div className="container flex items-center justify-between p-2 mx-auto">
-
         {/* Mobile: Hamburger */}
         <button
           className="p-2 rounded md:hidden hover:bg-zinc-700"
@@ -66,6 +68,7 @@ function Header() {
         {/* Desktop: Nav buttons */}
         <div className="hidden space-x-3 md:flex">
           <button
+            onClick={() => navigate("/dashboard")}
             className={`flex items-center space-x-1 btn ${
               isActive("/dashboard") ? "bg-blue-700 text-white" : "btn-outline-primary"
             }`}
@@ -127,40 +130,39 @@ function Header() {
 
       {/* Mobile: Menu */}
       {menuOpen && (
-  <div className="px-4 pb-4 space-y-2 md:hidden">
-    <button
-      onClick={() => {
-        navigate("/dashboard");
-        setMenuOpen(false);
-      }}
-      className="block w-full px-3 py-2 text-left text-blue-600 rounded hover:bg-zinc-700"
-    >
-      Home
-    </button>
-    <Link
-      to="/item"
-      className="block px-3 py-2 text-blue-600 rounded hover:bg-zinc-700"
-      onClick={() => setMenuOpen(false)}
-    >
-      Item
-    </Link>
-    <Link
-      to="/history"
-      className="block px-3 py-2 text-yellow-600 rounded hover:bg-zinc-700"
-      onClick={() => setMenuOpen(false)}
-    >
-      History
-    </Link>
-    <Link
-      to="/logout"
-      className="block px-3 py-2 text-red-600 rounded hover:bg-zinc-700"
-      onClick={() => setMenuOpen(false)}
-    >
-      Logout
-    </Link>
-  </div>
-)}
-
+        <div className="px-4 pb-4 space-y-2 md:hidden">
+          <button
+            onClick={() => {
+              navigate("/dashboard");
+              setMenuOpen(false);
+            }}
+            className="block w-full px-3 py-2 text-left text-blue-600 rounded hover:bg-zinc-700"
+          >
+            Home
+          </button>
+          <Link
+            to="/item"
+            className="block px-3 py-2 text-blue-600 rounded hover:bg-zinc-700"
+            onClick={() => setMenuOpen(false)}
+          >
+            Item
+          </Link>
+          <Link
+            to="/history"
+            className="block px-3 py-2 text-yellow-600 rounded hover:bg-zinc-700"
+            onClick={() => setMenuOpen(false)}
+          >
+            History
+          </Link>
+          <Link
+            to="/logout"
+            className="block px-3 py-2 text-red-600 rounded hover:bg-zinc-700"
+            onClick={() => setMenuOpen(false)}
+          >
+            Logout
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }
