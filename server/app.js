@@ -57,13 +57,13 @@ app.use('/api/item', itemRoutes);
 
 
 // Protected Dashboard Route
-app.get('https://shop-store-1-z2v0.onrender.com/dashboard', authMiddleware, (req, res) => {
+app.get('/dashboard', authMiddleware, (req, res) => {
   res.send(`Welcome to the Dashboard, ${req.user.username}!`);
 });
-app.get('https://shop-store-1-z2v0.onrender.com/item', authMiddleware, (req, res) => {
+app.get('/item', authMiddleware, (req, res) => {
   res.send(`Welcome to the Item Page, ${req.user.username}!`);
 });
-app.get('https://shop-store-1-z2v0.onrender.com/history', authMiddleware, (req, res) => {
+app.get('/history', authMiddleware, (req, res) => {
   res.send(`Welcome to the History Page, ${req.user.username}!`);
 });
 
