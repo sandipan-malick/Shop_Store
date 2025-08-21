@@ -156,7 +156,7 @@ exports.login = async (req, res) => {
         secure: process.env.NODE_ENV === "production",
         sameSite: "none",
         path:"/"
-        maxAge: 30*24 * 60 * 60 * 1000, // 1 day
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 1 day
       })
       .status(200)
       .json({
