@@ -227,7 +227,7 @@ exports.getTotalInvestment = async (req, res) => {
       return res.status(404).json({ error: "Dashboard not found" });
     }
 
-    // Total Investment (initial + uploads)
+    // Total Investment
     const totalDashboardInvestment = dashboards
       .map(doc => doc.totalInvestment || 0)
       .reduce((a, b) => a + b, 0);
@@ -239,10 +239,10 @@ exports.getTotalInvestment = async (req, res) => {
 
     const combinedTotalInvestment = totalDashboardInvestment + totalUploadsInvestment;
 
-    // All sales
+    // All-time sales
     const sales = await HistoryPage.find({ userId }).lean();
 
-    // ✅ Fix: calculate daily sales using createdAt date range
+    // ✅ Today’s sales only
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
@@ -258,7 +258,7 @@ exports.getTotalInvestment = async (req, res) => {
       0
     );
 
-    // Totals
+    // All-time totals
     const totalSales = sales.reduce(
       (acc, sale) => acc + sale.sellPrice * Math.abs(sale.quantityChanged),
       0
@@ -271,6 +271,9 @@ exports.getTotalInvestment = async (req, res) => {
 
     const totalProfit = totalSales - totalCost;
 
+    // Format today’s date
+    const todayDate = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+
     res.json({
       totalDashboardInvestment,
       totalUploadsInvestment,
@@ -278,15 +281,14 @@ exports.getTotalInvestment = async (req, res) => {
       dailySales,
       totalSales,
       totalProfit,
-      dashboards,
-      updateItems,
-      sales
+      todayDate,   // ✅ add this
     });
   } catch (err) {
     console.error("Error calculating dashboard stats:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 // ================== Logout ==================
 exports.logout = async (req, res) => {
