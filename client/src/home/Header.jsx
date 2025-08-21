@@ -1,6 +1,6 @@
-// Header.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,12 +18,6 @@ function Header() {
     alert(`Searching for: ${searchTerm}`);
     setSearchTerm("");
     setSearchOpen(false);
-  };
-
-  // Navigate to dashboard (home page)
-  const goHome = () => {
-    navigate("/dashboard");
-    setMenuOpen(false);
   };
 
   return (
@@ -72,9 +66,9 @@ function Header() {
         {/* Desktop: Nav buttons */}
         <div className="hidden space-x-3 md:flex">
           <button
-            onClick={goHome}
+            onClick={checkAuth}
             className={`flex items-center space-x-1 btn ${
-              isActive("/") ? "bg-blue-700 text-white" : "btn-outline-primary"
+              isActive("/dashboard") ? "bg-blue-700 text-white" : "btn-outline-primary"
             }`}
           >
             <i className="bi bi-house-door-fill"></i>
@@ -136,7 +130,7 @@ function Header() {
       {menuOpen && (
         <div className="px-4 pb-4 space-y-2 md:hidden">
           <button
-            onClick={goHome}
+            onClick={checkAuth}
             className="block w-full px-3 py-2 text-left text-blue-600 rounded hover:bg-zinc-700"
           >
             Home
