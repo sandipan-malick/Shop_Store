@@ -87,7 +87,7 @@ function Register() {
         <p className="mt-4 text-sm text-center text-gray-300">
           Already have an account?{' '}
           <Link to="/login" className="text-blue-400 hover:underline">Login</Link><br />
-          <a to="/login/forgetPassword" className="text-blue-400 hover:underline">Forget Password</a>
+          <Link to="/login/forgetPassword" className="text-blue-400 hover:underline">Forget Password</Link>
         </p>
       </div>
     </div>
