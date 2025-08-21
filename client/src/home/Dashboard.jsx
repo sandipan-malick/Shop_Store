@@ -9,27 +9,33 @@ function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
+  // Check for auth cookie
+  const checkAuthCookie = async () => {
+    // Simple client-side check for a cookie (change "token" to your cookie name)
+    const cookies = document.cookie.split(";").map(c => c.trim());
+    const authCookie = cookies.find(c => c.startsWith("token="));
 
-const checkAuth = async () => {
-  try {
-    await axios.get("https://shop-store-1-z2v0.onrender.com/dashboard", { withCredentials: true });
-    setLoading(false); // auth passed, show dashboard
-  } catch (err) {
-    if (err.response && err.response.status === 401) {
+    if (!authCookie) {
       navigate("/login");
-    } else {
-      console.error(err);
+      return;
     }
-  }
-};
 
+    // If cookie exists, you can optionally verify it with the backend
+    try {
+      await axios.get("https://shop-store-1-z2v0.onrender.com/dashboard", {
+        withCredentials: true,
+      });
+      setLoading(false); // auth passed, show dashboard
+    } catch (err) {
+      navigate("/login");
+    }
+  };
 
-  // Run auth check once when component mounts
   useEffect(() => {
-    checkAuth();
+    checkAuthCookie();
   }, []);
 
-  // if (loading) return <div className="text-white">Loading...</div>;
+  if (loading) return <div className="text-white">Loading...</div>;
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-800">
