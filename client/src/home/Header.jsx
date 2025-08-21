@@ -66,7 +66,6 @@ function Header() {
         {/* Desktop: Nav buttons */}
         <div className="hidden space-x-3 md:flex">
           <button
-            onClick={checkAuth}
             className={`flex items-center space-x-1 btn ${
               isActive("/dashboard") ? "bg-blue-700 text-white" : "btn-outline-primary"
             }`}
@@ -128,36 +127,40 @@ function Header() {
 
       {/* Mobile: Menu */}
       {menuOpen && (
-        <div className="px-4 pb-4 space-y-2 md:hidden">
-          <button
-            onClick={checkAuth}
-            className="block w-full px-3 py-2 text-left text-blue-600 rounded hover:bg-zinc-700"
-          >
-            Home
-          </button>
-          <Link
-            to="/item"
-            className="block px-3 py-2 text-blue-600 rounded hover:bg-zinc-700"
-            onClick={() => setMenuOpen(false)}
-          >
-            Item
-          </Link>
-          <Link
-            to="/history"
-            className="block px-3 py-2 text-yellow-600 rounded hover:bg-zinc-700"
-            onClick={() => setMenuOpen(false)}
-          >
-            History
-          </Link>
-          <Link
-            to="/logout"
-            className="block px-3 py-2 text-red-600 rounded hover:bg-zinc-700"
-            onClick={() => setMenuOpen(false)}
-          >
-            Logout
-          </Link>
-        </div>
-      )}
+  <div className="px-4 pb-4 space-y-2 md:hidden">
+    <button
+      onClick={() => {
+        navigate("/dashboard");
+        setMenuOpen(false);
+      }}
+      className="block w-full px-3 py-2 text-left text-blue-600 rounded hover:bg-zinc-700"
+    >
+      Home
+    </button>
+    <Link
+      to="/item"
+      className="block px-3 py-2 text-blue-600 rounded hover:bg-zinc-700"
+      onClick={() => setMenuOpen(false)}
+    >
+      Item
+    </Link>
+    <Link
+      to="/history"
+      className="block px-3 py-2 text-yellow-600 rounded hover:bg-zinc-700"
+      onClick={() => setMenuOpen(false)}
+    >
+      History
+    </Link>
+    <Link
+      to="/logout"
+      className="block px-3 py-2 text-red-600 rounded hover:bg-zinc-700"
+      onClick={() => setMenuOpen(false)}
+    >
+      Logout
+    </Link>
+  </div>
+)}
+
     </nav>
   );
 }
