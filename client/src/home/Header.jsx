@@ -94,7 +94,7 @@ function Header() {
 
           {/* Logo */}
           <h1 className="text-lg font-semibold text-blue-600 md:hidden">
-            Item
+            Home
           </h1>
 
           {/* Desktop search */}
