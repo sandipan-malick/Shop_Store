@@ -29,7 +29,7 @@ const checkAuth = async () => {
     checkAuth();
   }, []);
 
-  if (loading) return <div className="text-white">Loading...</div>;
+  // if (loading) return <div className="text-white">Loading...</div>;
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-800">
