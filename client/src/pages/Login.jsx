@@ -60,7 +60,7 @@ function Login() {
         </form>
         <p className="mt-4 text-sm text-center text-gray-300">
           Don't have an account?{" "}
-          <Link to="/" className="text-blue-400 hover:underline">Register</Link>
+          <Link to="/registerPage" className="text-blue-400 hover:underline">Register</Link>
           <br />
           <Link to="/login/forgetPassword" className="text-blue-400 hover:underline">Forget Password</Link>
         </p>
