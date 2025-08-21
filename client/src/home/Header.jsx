@@ -122,7 +122,7 @@ function Header() {
           >
             <div className="flex flex-col gap-2 mt-3 md:flex-row md:mt-0">
               <Link
-                to="/"
+                to="/dashboard"
                 className="flex items-center space-x-1 btn btn-outline-primary"
               >
                 <button>
