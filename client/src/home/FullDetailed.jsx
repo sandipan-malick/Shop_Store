@@ -7,6 +7,7 @@ function FullDetailed() {
     dailySales: 0,
     totalSales: 0,
     totalProfit: 0,
+    todayDate: "", // ✅ added
   });
 
   useEffect(() => {
@@ -15,13 +16,14 @@ function FullDetailed() {
         withCredentials: true,
       })
       .then((res) => {
-        console.log("Backend response:", res.data); // ✅ Debugging log
+        console.log("Backend response:", res.data);
 
         setStats({
           combinedTotalInvestment: res.data.combinedTotalInvestment || 0,
           dailySales: res.data.dailySales || 0,
           totalSales: res.data.totalSales || 0,
           totalProfit: res.data.totalProfit || 0,
+          todayDate: res.data.todayDate || "", // ✅ store date
         });
       })
       .catch((err) => console.error("Error fetching investment:", err));
@@ -42,7 +44,9 @@ function FullDetailed() {
 
         {/* Daily Sales */}
         <div className="p-6 text-white transition bg-green-600 rounded-lg shadow-md hover:shadow-lg">
-          <h2 className="text-lg font-semibold">Daily Sales</h2>
+          <h2 className="text-lg font-semibold">
+            Daily Sales {stats.todayDate && `(${stats.todayDate})`} {/* ✅ show date */}
+          </h2>
           <p className="mt-2 text-2xl font-bold">₹{stats.dailySales.toFixed(2)}</p>
         </div>
 
