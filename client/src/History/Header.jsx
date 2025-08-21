@@ -80,7 +80,7 @@ function Header() {
 
         {/* Desktop: Nav buttons */}
         <div className="hidden space-x-3 md:flex">
-          <Link to="/">
+          <Link to="/dashboard">
             <button
               className={`flex items-center space-x-1 btn ${isActive("/dashboard")
                 ? "bg-blue-700 text-white"
@@ -149,7 +149,7 @@ function Header() {
       {menuOpen && (
         <div className="px-4 pb-4 space-y-2 md:hidden">
           <Link
-            to="/"
+            to="/dashboard"
             className="block px-3 py-2 text-left text-blue-600 rounded btn btn-outline-primary"
             onClick={() => setMenuOpen(false)}
           >
