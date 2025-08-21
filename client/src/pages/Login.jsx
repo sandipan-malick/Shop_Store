@@ -12,22 +12,22 @@ function Login() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(
-        "https://shop-store-1-z2v0.onrender.com/api/user/login",
-        form,
-        { withCredentials: true }
-      );
-      navigate("/dashboard");
-      res.status(200)// only after login succeeds
-    } catch (err) {
-      console.error(err.response?.data?.error || "Login failed");
-      alert(err.response?.data?.error || "Invalid credentials");
-    }
+  e.preventDefault();
+  try {
+    const res = await axios.post(
+      "https://shop-store-1-z2v0.onrender.com/api/user/login",
+      form,
+      { withCredentials: true } // needed for cookies
+    );
 
+    console.log("Login successful:", res.data); // ✅ check server response
+    navigate("/dashboard"); // go to dashboard after success
+  } catch (err) {
+    console.error(err.response?.data?.error || "Login failed");
+    alert(err.response?.data?.error || "Invalid credentials");
+  }
+};
 
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-800">
