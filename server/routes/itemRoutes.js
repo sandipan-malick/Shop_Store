@@ -4,7 +4,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const itemController = require("../controllers/itemController");
 
 //
-router.get("/add-insvement", authMiddleware, itemController.getTotalInvestment);
+router.get("/add-invesment", authMiddleware, itemController.getTotalInvestment);
 // Add new product
 router.post("/add-item", authMiddleware, itemController.addItem);
 
