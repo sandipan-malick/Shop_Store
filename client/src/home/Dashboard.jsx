@@ -35,8 +35,6 @@ function Dashboard() {
     checkAuthCookie();
   }, []);
 
-  if (loading) return <div className="text-white">Loading...</div>;
-
   return (
     <div className="flex flex-col min-h-screen bg-zinc-800">
       <Header />
