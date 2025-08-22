@@ -4,6 +4,40 @@ const HistoryPage = require("../models/HistoryPage");
 const UpdateItem = require("../models/UpdateItem");
 const DashboardInvestment = require("../models/DashboardInvesment");
 
+// ---------- Timezone helpers (IST) ----------
+const IST_TZ = "Asia/Kolkata";
+const IST_OFFSET_MINUTES = 330; // IST is UTC+5:30
+
+function formatISTDate(d) {
+  return new Date(d).toLocaleDateString("en-CA", { timeZone: IST_TZ }); // YYYY-MM-DD
+}
+function formatISTTime(d) {
+  return new Date(d).toLocaleTimeString("en-GB", { timeZone: IST_TZ, hour12: false }); // HH:mm:ss
+}
+/**
+ * Returns { startUTC, endUTC } for "today" in IST.
+ * startUTC is 00:00:00 IST converted to UTC, endUTC is 23:59:59.999 IST in UTC
+ */
+function getISTTodayRangeUTC() {
+  const nowUTC = new Date(); // server time (UTC)
+  const nowISTms = nowUTC.getTime() + IST_OFFSET_MINUTES * 60 * 1000;
+  const nowIST = new Date(nowISTms);
+
+  // Build a Date that is "today 00:00:00.000" in IST
+  const istStart = new Date(nowIST);
+  istStart.setHours(0, 0, 0, 0);
+
+  // And "today 23:59:59.999" in IST
+  const istEnd = new Date(nowIST);
+  istEnd.setHours(23, 59, 59, 999);
+
+  // Convert both back to UTC by subtracting offset
+  const startUTC = new Date(istStart.getTime() - IST_OFFSET_MINUTES * 60 * 1000);
+  const endUTC = new Date(istEnd.getTime() - IST_OFFSET_MINUTES * 60 * 1000);
+
+  return { startUTC, endUTC };
+}
+
 // ================== Add Item ==================
 exports.addItem = async (req, res) => {
   const { productName, productPrice, productSellPrice, productDescription, quantity } = req.body;
@@ -25,7 +59,7 @@ exports.addItem = async (req, res) => {
       userId,
     });
 
-    const itemInvestment = productPrice * quantity;
+    const itemInvestment = (Number(productPrice) || 0) * (Number(quantity) || 0);
     await DashboardInvestment.create({ userId, totalInvestment: itemInvestment });
 
     res.json({ message: "Product added successfully", product });
@@ -38,7 +72,7 @@ exports.addItem = async (req, res) => {
 // ================== Search Item ==================
 exports.search = async (req, res) => {
   try {
-    const query = req.query.q?.trim().toLowerCase();
+    const query = req.query.q?.trim();
     const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
     if (!query) return res.status(400).json({ error: "Search term required" });
@@ -71,11 +105,14 @@ exports.updateItem = async (req, res) => {
       return res.status(404).json({ error: "Item not found or you don't have permission" });
     }
 
+    let somethingChanged = false;
+
     if (quantity !== undefined) {
       if (typeof quantity !== "number" || quantity < 0) {
         return res.status(400).json({ error: "Quantity must be a positive number" });
       }
       updateFields.quantity = item.quantity + quantity;
+      somethingChanged = true;
     }
 
     if (productPrice !== undefined) {
@@ -83,6 +120,7 @@ exports.updateItem = async (req, res) => {
         return res.status(400).json({ error: "Product Price must be a positive number" });
       }
       updateFields.productPrice = productPrice;
+      somethingChanged = true;
     }
 
     if (productSellPrice !== undefined) {
@@ -90,10 +128,16 @@ exports.updateItem = async (req, res) => {
         return res.status(400).json({ error: "Selling Price must be a positive number" });
       }
       updateFields.productSellPrice = productSellPrice;
+      somethingChanged = true;
     }
 
     if (productDescription !== undefined) {
       updateFields.productDescription = productDescription;
+      somethingChanged = true;
+    }
+
+    if (!somethingChanged) {
+      return res.status(400).json({ error: "No valid fields to update" });
     }
 
     const updatedItem = await Item.findOneAndUpdate(
@@ -102,6 +146,7 @@ exports.updateItem = async (req, res) => {
       { new: true }
     );
 
+    // Log update (quantity may be 0 if only price/description changed)
     await UpdateItem.create({
       productName: updatedItem.productName,
       productPrice: updatedItem.productPrice,
@@ -168,6 +213,12 @@ exports.deleteItem = async (req, res) => {
     if (!deletedItem) {
       return res.status(404).json({ error: "Item not found or you don't have permission" });
     }
+
+    // Optional: cascade deletes (uncomment if you want to remove related records)
+    // await UpdateItem.deleteMany({ productName: deletedItem.productName, userId });
+    // await HistoryPage.deleteMany({ productName: deletedItem.productName, userId });
+    // await DashboardInvestment.deleteMany({ userId });
+
     res.json({ message: "Item deleted successfully" });
   } catch (err) {
     console.error("Delete item error:", err);
@@ -185,14 +236,14 @@ exports.history = async (req, res) => {
     const sales = await HistoryPage.find({ userId }).lean();
 
     const allHistory = [...updates, ...sales];
+
+    // Sort by UTC createdAt, then format to IST for display
     allHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Format response: add date & time from createdAt
-    const formattedHistory = allHistory.map(h => ({
+    const formattedHistory = allHistory.map((h) => ({
       ...h,
-     date: new Date(h.createdAt).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
-     time: new Date(h.createdAt).toLocaleTimeString("en-GB", { hour12: true, timeZone: "Asia/Kolkata" }),
-
+      date: formatISTDate(h.createdAt),
+      time: formatISTTime(h.createdAt),
     }));
 
     res.json(formattedHistory);
@@ -215,12 +266,12 @@ exports.getTotalInvestment = async (req, res) => {
 
     // Total Investment
     const totalDashboardInvestment = dashboards
-      .map(doc => doc.totalInvestment || 0)
+      .map((doc) => doc.totalInvestment || 0)
       .reduce((a, b) => a + b, 0);
 
     const updateItems = await UpdateItem.find({ userId });
     const totalUploadsInvestment = updateItems
-      .map(item => (item.productPrice || 0) * (item.quantityChanged || 0))
+      .map((item) => (item.productPrice || 0) * (item.quantityChanged || 0))
       .reduce((a, b) => a + b, 0);
 
     const combinedTotalInvestment = totalDashboardInvestment + totalUploadsInvestment;
@@ -228,37 +279,34 @@ exports.getTotalInvestment = async (req, res) => {
     // All-time sales
     const sales = await HistoryPage.find({ userId }).lean();
 
-    // ✅ Today’s sales only
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    // ✅ Today’s sales only (using IST day range converted to UTC)
+    const { startUTC, endUTC } = getISTTodayRangeUTC();
 
     const todaySales = await HistoryPage.find({
       userId,
-      createdAt: { $gte: startOfDay, $lt: endOfDay }
+      createdAt: { $gte: startUTC, $lte: endUTC },
     });
 
     const dailySales = todaySales.reduce(
-      (acc, sale) => acc + sale.sellPrice * Math.abs(sale.quantityChanged),
+      (acc, sale) => acc + (sale.sellPrice || 0) * Math.abs(sale.quantityChanged || 0),
       0
     );
 
     // All-time totals
     const totalSales = sales.reduce(
-      (acc, sale) => acc + sale.sellPrice * Math.abs(sale.quantityChanged),
+      (acc, sale) => acc + (sale.sellPrice || 0) * Math.abs(sale.quantityChanged || 0),
       0
     );
 
     const totalCost = sales.reduce(
-      (acc, sale) => acc + sale.productPrice * Math.abs(sale.quantityChanged),
+      (acc, sale) => acc + (sale.productPrice || 0) * Math.abs(sale.quantityChanged || 0),
       0
     );
 
     const totalProfit = totalSales - totalCost;
 
-    // Format today’s date
-    const todayDate = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+    // Today’s date in IST for display
+    const todayDate = formatISTDate(new Date());
 
     res.json({
       totalDashboardInvestment,
@@ -286,7 +334,7 @@ exports.logout = async (req, res) => {
     });
 
     if (req.session) {
-      req.session.destroy(err => {
+      req.session.destroy((err) => {
         if (err) {
           console.error("Session destroy error:", err);
           return res.status(500).json({ error: "Logout failed" });
