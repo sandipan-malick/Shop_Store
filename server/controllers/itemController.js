@@ -4,14 +4,6 @@ const HistoryPage = require("../models/HistoryPage");
 const UpdateItem = require("../models/UpdateItem");
 const DashboardInvestment = require("../models/DashboardInvesment");
 
-// Helper for date/time
-function getDateTime() {
-  const now = new Date();
-  const date = now.toLocaleDateString("en-CA"); // YYYY-MM-DD
-  const time = now.toLocaleTimeString("en-GB", { hour12: false }); // HH:mm:ss
-  return { date, time };
-}
-
 // ================== Add Item ==================
 exports.addItem = async (req, res) => {
   const { productName, productPrice, productSellPrice, productDescription, quantity } = req.body;
@@ -110,11 +102,7 @@ exports.updateItem = async (req, res) => {
       { new: true }
     );
 
-    const { date, time } = getDateTime();
-
     await UpdateItem.create({
-      date,
-      time,
       productName: updatedItem.productName,
       productPrice: updatedItem.productPrice,
       sellPrice: updatedItem.productSellPrice,
@@ -154,19 +142,13 @@ exports.update = async (req, res) => {
     item.quantity -= decreaseAmount;
     await item.save();
 
-    const { date, time } = getDateTime();
-
-    const history = new HistoryPage({
-      date,
-      time,
+    await HistoryPage.create({
       productName: item.productName,
       productPrice: item.productPrice,
       sellPrice: item.productSellPrice,
       quantityChanged: -decreaseAmount,
       userId,
     });
-
-    await history.save();
 
     res.json({ message: "Quantity decreased & history recorded", item });
   } catch (error) {
@@ -203,13 +185,16 @@ exports.history = async (req, res) => {
     const sales = await HistoryPage.find({ userId }).lean();
 
     const allHistory = [...updates, ...sales];
-    allHistory.sort((a, b) => {
-      const dateTimeA = new Date(`${a.date} ${a.time}`);
-      const dateTimeB = new Date(`${b.date} ${b.time}`);
-      return dateTimeB - dateTimeA;
-    });
+    allHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    res.json(allHistory);
+    // Format response: add date & time from createdAt
+    const formattedHistory = allHistory.map(h => ({
+      ...h,
+      date: new Date(h.createdAt).toLocaleDateString("en-CA"),
+      time: new Date(h.createdAt).toLocaleTimeString("en-GB", { hour12: false }),
+    }));
+
+    res.json(formattedHistory);
   } catch (err) {
     console.error("Error fetching history:", err);
     res.status(500).json({ error: "Server error" });
@@ -281,14 +266,13 @@ exports.getTotalInvestment = async (req, res) => {
       dailySales,
       totalSales,
       totalProfit,
-      todayDate,   // ✅ add this
+      todayDate,
     });
   } catch (err) {
     console.error("Error calculating dashboard stats:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
-
 
 // ================== Logout ==================
 exports.logout = async (req, res) => {
