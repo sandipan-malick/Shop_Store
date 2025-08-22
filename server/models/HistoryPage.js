@@ -1,14 +1,6 @@
 const mongoose = require("mongoose");
 
 const HistorySchema = new mongoose.Schema({
-    date: {
-        type: String,
-        required: true
-    },
-    time: {
-        type: String,
-        required: true
-    },
     productName: {
         type: String,
         required: true
