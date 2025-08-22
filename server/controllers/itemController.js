@@ -190,8 +190,9 @@ exports.history = async (req, res) => {
     // Format response: add date & time from createdAt
     const formattedHistory = allHistory.map(h => ({
       ...h,
-      date: new Date(h.createdAt).toLocaleDateString("en-CA"),
-      time: new Date(h.createdAt).toLocaleTimeString("en-GB", { hour12: false }),
+     date: new Date(h.createdAt).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
+     time: new Date(h.createdAt).toLocaleTimeString("en-GB", { hour12: true, timeZone: "Asia/Kolkata" }),
+
     }));
 
     res.json(formattedHistory);
