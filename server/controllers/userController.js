@@ -240,10 +240,14 @@ exports.verifyForgetOtp = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { email, newPassword } = req.body;
-    if (!email || !newPassword) return res.status(400).json({ message: "Email & new password required" });
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: "Email & new password required" });
+    }
 
     const resetEntry = await ResetRequest.findOne({ email });
-    if (!resetEntry) return res.status(403).json({ message: "Unauthorized request" });
+    if (!resetEntry) {
+      return res.status(403).json({ message: "Unauthorized request" });
+    }
 
     if (resetEntry.expiresAt < new Date()) {
       await ResetRequest.deleteOne({ email });
@@ -253,14 +257,17 @@ exports.resetPassword = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    // ❌ Remove manual bcrypt.hash (avoid double hashing)
+    user.password = newPassword; // Schema will hash automatically
     await user.save();
 
     await ResetRequest.deleteOne({ email });
 
-    sendEmail(email, "✅ Password Changed", `Hi, your password was changed successfully.`).catch((e) =>
-      console.error("Password change email error:", e)
-    );
+    sendEmail(
+      email,
+      "✅ Password Changed",
+      `Hi, your password was changed successfully.`
+    ).catch((e) => console.error("Password change email error:", e));
 
     res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
