@@ -6,17 +6,14 @@ export default defineConfig({
   optimizeDeps: {
     include: ['jwt-decode'],
   },
-  base: '/', // MUST be '/' for Netlify deployment
+  base: './', // ensures correct asset paths on Netlify
   server: {
     proxy: {
       '/api': {
-        target: 'https://shop-store-1-z2v0.onrender.com',
+        target: 'https://shop-store-1-z2v0.onrender.com', // local dev proxy only
         changeOrigin: true,
         secure: false,
       },
     },
-  },
-  build: {
-    outDir: 'dist',
   },
 });
